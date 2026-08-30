@@ -7,6 +7,7 @@ for six small pictures, so each model is rasterised once here to a sprite.
 Run inside the venv that has rhino3dm:
     ../.venv-3dm/bin/python tools/gen_token_art.py ../tokens
 """
+import math
 import pathlib
 import sys
 
@@ -21,6 +22,13 @@ MARGIN = 0.08
 LIT = np.array([226, 104, 104], float)
 COLD = np.array([174, 176, 164], float)
 LIGHT = np.array([0.35, 0.5, 0.79])
+
+# Yaw applied per model, in degrees about the vertical axis, so each building
+# presents the face it should. The camera is fixed, looking from the north-east,
+# so a model whose front sits away from that direction has to be turned.
+ROTATE_DEG = {
+    "detective_agency": 90,
+}
 
 # Source file stem -> destination id in assets/destinations.json.
 MODEL_FOR = {
@@ -66,13 +74,23 @@ def meshes_in(path: pathlib.Path):
     return out
 
 
-def render(parts, base_rgb) -> Image.Image:
+def render(parts, base_rgb, yaw_deg: float = 0) -> Image.Image:
     verts, tris, offset = [], [], 0
     for v, t in parts:
         verts.append(v)
         tris.append(t + offset)
         offset += len(v)
     V, T = np.vstack(verts), np.vstack(tris)
+
+    if yaw_deg:
+        a = math.radians(yaw_deg)
+        c, s_ = math.cos(a), math.sin(a)
+        centre = V.mean(axis=0)
+        xy = V[:, :2] - centre[:2]
+        V = np.column_stack([
+            xy @ np.array([[c, s_], [-s_, c]]) + centre[:2],
+            V[:, 2],
+        ])
 
     view = np.array([-1.0, -1.0, -0.85])
     view /= np.linalg.norm(view)
@@ -124,8 +142,9 @@ if __name__ == "__main__":
         if not parts:
             print(f"  !! {path.name}: no render meshes")
             continue
+        yaw = ROTATE_DEG.get(dest_id, 0)
         for suffix, colour in (("lit", LIT), ("cold", COLD)):
-            render(parts, colour).save(out_dir / f"{dest_id}_{suffix}.png")
+            render(parts, colour, yaw).save(out_dir / f"{dest_id}_{suffix}.png")
         seen.add(dest_id)
         faces = sum(len(t) for _, t in parts)
         print(f"  {path.name:24} -> {dest_id:24} {len(parts):4} meshes {faces:6} faces")
