@@ -28,6 +28,10 @@ class Destination {
   final Rarity rarity;
   final String hint;
 
+  /// Sprites rendered from the Rhino source by tools/gen_token_art.py.
+  String get artLit => 'assets/tokens/${id}_lit.png';
+  String get artCold => 'assets/tokens/${id}_cold.png';
+
   factory Destination.fromJson(Map<String, dynamic> j) => Destination(
         id: j['id'] as String,
         name: j['name'] as String,

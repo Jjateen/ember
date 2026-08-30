@@ -55,17 +55,13 @@ class _IgnitionScreenState extends State<IgnitionScreen> {
           child: Column(
             children: [
               const Spacer(),
-              Container(
-                width: 84,
-                height: 84,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.white70, width: 2),
-                  boxShadow: const [
-                    BoxShadow(color: Colors.black38, blurRadius: 26, offset: Offset(0, 10)),
-                  ],
-                ),
+              Image.asset(
+                d.artLit,
+                width: 168,
+                height: 168,
+                fit: BoxFit.contain,
+                color: Colors.white,
+                colorBlendMode: BlendMode.srcIn,
               ),
               const SizedBox(height: 18),
               const Text(

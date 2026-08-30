@@ -25,7 +25,7 @@ class GeolocatorLocationService implements LocationService {
     _sub ??= Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 10,
+        distanceFilter: 5,
       ),
     ).listen(
       (p) => _out.add(Fix(

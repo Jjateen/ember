@@ -76,16 +76,15 @@ class _Tile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 26,
-            height: 26,
-            decoration: BoxDecoration(
-              color: lit ? Ember.red : Ember.sage,
-              borderRadius: BorderRadius.circular(5),
-              border: Border.all(color: lit ? Ember.coral : Ember.muted, width: 1.6),
+          Expanded(
+            child: Center(
+              child: Image.asset(
+                lit ? d.artLit : d.artCold,
+                fit: BoxFit.contain,
+                filterQuality: FilterQuality.medium,
+              ),
             ),
           ),
-          const Spacer(),
           Text(
             lit ? d.name : '???',
             maxLines: 2,

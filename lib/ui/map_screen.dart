@@ -19,6 +19,13 @@ const String kSatelliteTiles =
 
 enum BaseMap { satellite, street }
 
+/// Esri serves imagery for this area up to zoom 19 and returns blank tiles
+/// beyond it, so 19 is the real detail ceiling: roughly 28 cm per pixel, which
+/// resolves roofs but renders a 1.5 m lane only a few pixels wide. One extra
+/// level of upscaling is allowed for placing yourself precisely; past that the
+/// picture gets bigger without getting clearer.
+const double kMaxZoom = 20;
+
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key, required this.game});
   final GameController game;
@@ -36,7 +43,7 @@ class _MapScreenState extends State<MapScreen> {
 
   void _zoom(double delta) {
     final c = _map.camera;
-    _map.move(c.center, (c.zoom + delta).clamp(3.0, 19.0));
+    _map.move(c.center, (c.zoom + delta).clamp(3.0, kMaxZoom));
   }
 
   @override
@@ -77,6 +84,7 @@ class _MapScreenState extends State<MapScreen> {
                 options: const MapOptions(
                   initialCenter: LatLng(19.1696532, 72.8391783),
                   initialZoom: 17.4,
+                  maxZoom: kMaxZoom,
                   interactionOptions: InteractionOptions(flags: InteractiveFlag.all),
                 ),
                 children: [
@@ -85,6 +93,7 @@ class _MapScreenState extends State<MapScreen> {
                       urlTemplate: kSatelliteTiles,
                       userAgentPackageName: kTileUserAgent,
                       maxNativeZoom: 19,
+                      maxZoom: kMaxZoom,
                       // The camera pans continuously while walking; without a
                       // wider buffer the map shows grey holes as tiles load.
                       panBuffer: 2,
@@ -99,6 +108,8 @@ class _MapScreenState extends State<MapScreen> {
                         userAgentPackageName: kTileUserAgent,
                         panBuffer: 2,
                         keepBuffer: 6,
+                        maxNativeZoom: 19,
+                        maxZoom: kMaxZoom,
                         tileProvider: NetworkTileProvider(),
                       ),
                     ),
