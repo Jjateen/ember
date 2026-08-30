@@ -48,8 +48,12 @@ class GameController extends ChangeNotifier {
 
   final List<GeoPoint> trail = [];
   Trend trend = Trend.steady;
-  double? _lastDistanceM;
-  String? _lastNearestId;
+
+  /// Distance to each place at the previous fix. Keyed by place, because the
+  /// nearest one changes constantly when destinations sit close together, and
+  /// comparing against whatever happened to be nearest last time resets the
+  /// readout to steady almost every fix.
+  final Map<String, double> _lastDistanceById = {};
   double trailMetres = 0;
 
   String? permissionProblem;
@@ -97,7 +101,7 @@ class GameController extends ChangeNotifier {
     if (trail.length > kTrailLimit) trail.removeAt(0);
 
     proximity = evaluate(at: fix.at, all: destinations, unlocked: unlockedIds);
-    _updateTrend();
+    _updateTrend(fix.at);
 
     final target = proximity.inRadius.isEmpty ? null : proximity.inRadius.first;
     if (target == null) {
@@ -108,19 +112,28 @@ class GameController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _updateTrend() {
+  void _updateTrend(GeoPoint at) {
+    final target = proximity.nearest;
     final d = proximity.distanceM;
-    final id = proximity.nearest?.id;
-    if (d == null || id == null || id != _lastNearestId || _lastDistanceM == null) {
+
+    if (target == null || d == null) {
       trend = Trend.steady;
     } else {
-      final delta = d - _lastDistanceM!;
-      trend = delta < -kTrendDeadbandM
-          ? Trend.warmer
-          : (delta > kTrendDeadbandM ? Trend.colder : Trend.steady);
+      final previous = _lastDistanceById[target.id];
+      if (previous == null) {
+        trend = Trend.steady;
+      } else {
+        final delta = d - previous;
+        trend = delta < -kTrendDeadbandM
+            ? Trend.warmer
+            : (delta > kTrendDeadbandM ? Trend.colder : Trend.steady);
+      }
     }
-    _lastDistanceM = d;
-    _lastNearestId = id;
+
+    for (final dest in destinations) {
+      if (unlockedIds.contains(dest.id)) continue;
+      _lastDistanceById[dest.id] = haversineMeters(at, dest.at);
+    }
   }
 
   void _startDwell(Destination d) {

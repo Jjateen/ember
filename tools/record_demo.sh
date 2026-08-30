@@ -9,7 +9,8 @@ set -uo pipefail
 PKG=dev.jjateen.ember
 OUT=${1:-demo}
 SEG=170
-SEGMENTS=4
+SEGMENTS=6
+SPEEDUP=${SPEEDUP:-6}
 MIN_BYTES=600000
 
 here=$(cd "$(dirname "$0")" && pwd)
@@ -71,9 +72,12 @@ for f in $(adb shell ls /sdcard/seg_*.mp4 2>/dev/null | tr -d '\r' | sort -V); d
 done
 
 if [ ! -s "$list" ]; then echo "no usable segments"; exit 1; fi
+# The walk runs at real pace, so the recording is sped up to stay watchable.
 ffmpeg -y -v error -f concat -safe 0 -i "$list" -t "$walk_secs" \
-  -vf "fps=24,scale=540:-2" -c:v libx264 -preset veryfast -crf 26 -pix_fmt yuv420p \
+  -vf "setpts=PTS/${SPEEDUP},fps=24,scale=540:-2" \
+  -c:v libx264 -preset veryfast -crf 26 -pix_fmt yuv420p \
   "$OUT.mp4"
+echo "walk ${walk_secs}s recorded, sped up ${SPEEDUP}x"
 adb shell rm -f /sdcard/seg_*.mp4 >/dev/null 2>&1
 
 echo "== done =="

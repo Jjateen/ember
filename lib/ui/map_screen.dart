@@ -24,7 +24,11 @@ enum BaseMap { satellite, street }
 /// resolves roofs but renders a 1.5 m lane only a few pixels wide. One extra
 /// level of upscaling is allowed for placing yourself precisely; past that the
 /// picture gets bigger without getting clearer.
-const double kMaxZoom = 20;
+const double kMaxZoom = 20.5;
+
+/// Close enough that individual roofs and the gaps between them read as lanes.
+/// At this level the view spans roughly 150 m, against 700 m at zoom 17.8.
+const double kFollowZoom = 20;
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key, required this.game});
@@ -67,7 +71,7 @@ class _MapScreenState extends State<MapScreen> {
 
     if (me != null && (me.lat != _followed?.lat || me.lng != _followed?.lng)) {
       _followed = me;
-      final zoom = _firstFix ? 17.8 : _map.camera.zoom;
+      final zoom = _firstFix ? kFollowZoom : _map.camera.zoom;
       _firstFix = false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _map.move(LatLng(me.lat, me.lng), zoom);
@@ -83,7 +87,7 @@ class _MapScreenState extends State<MapScreen> {
                 mapController: _map,
                 options: const MapOptions(
                   initialCenter: LatLng(19.1696532, 72.8391783),
-                  initialZoom: 17.4,
+                  initialZoom: 18.5,
                   maxZoom: kMaxZoom,
                   interactionOptions: InteractionOptions(flags: InteractiveFlag.all),
                 ),

@@ -15,8 +15,11 @@ import time
 
 M_PER_DEG_LAT = 111_320.0
 
-STEP_M = 3.5
-STEP_DELAY_S = 0.22
+# Real walking pace. The recording is sped up afterwards, so the app sees a
+# plausible GPS cadence rather than a jog, and the trail is shaped by genuine
+# movement instead of long jumps.
+STEP_M = 2.0
+STEP_DELAY_S = 2.0
 
 # Lateral wobble, in metres, so the trace reads as someone walking rather than
 # a machine following a spline.

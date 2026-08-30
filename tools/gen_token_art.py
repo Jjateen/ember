@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
-"""Render the token models from tokens.3dm into flat-shaded PNGs.
+"""Render each token model into a flat-shaded PNG the app can display.
 
-Rhino files cannot be drawn by Flutter, and a 3D engine would be a large
-dependency for six small pictures, so each model is rendered once here to a
-sprite the app just displays. Objects in the file are unnamed, so they are
-grouped into models by proximity.
+Flutter cannot draw Rhino files, and a 3D engine would be a heavy dependency
+for six small pictures, so each model is rasterised once here to a sprite.
 
 Run inside the venv that has rhino3dm:
-    ../.venv-3dm/bin/python tools/gen_token_art.py ../tokens.3dm
+    ../.venv-3dm/bin/python tools/gen_token_art.py ../tokens
 """
 import pathlib
 import sys
@@ -18,35 +16,43 @@ from PIL import Image, ImageDraw
 
 SIZE = 512
 SS = 2
-MARGIN = 0.10
-CLUSTER_THRESHOLD = 2.0
+MARGIN = 0.08
 
 LIT = np.array([226, 104, 104], float)
 COLD = np.array([174, 176, 164], float)
 LIGHT = np.array([0.35, 0.5, 0.79])
 
+# Source file stem -> destination id in assets/destinations.json.
+MODEL_FOR = {
+    "mandir": "sankat_mochan_hanuman",
+    "detective agency": "detective_agency",
+    "vachanalay": "vachanalay",
+    "self emplyed": "self_employee",
+    "open space": "open_space",
+    "road": "the_road",
+}
 
-def collect() -> list[tuple[np.ndarray, np.ndarray, int]]:
-    """Returns (vertices, triangles, object index) from cached render meshes.
 
-    A Brep yields one mesh per face, so meshes are tagged with the object they
-    came from; grouping must happen per object or a single solid splits apart.
-    """
-    model = r3.File3dm.Read(str(SRC))
+def meshes_in(path: pathlib.Path):
+    """Every cached render mesh in the file, as (vertices, triangles)."""
+    model = r3.File3dm.Read(str(path))
     out = []
-    for obj_index, obj in enumerate(model.Objects):
+    for obj in model.Objects:
         geom = obj.Geometry
-        meshes = []
+        found = []
         if isinstance(geom, r3.Extrusion):
             mesh = geom.GetMesh(r3.MeshType.Any)
             if mesh:
-                meshes.append(mesh)
+                found.append(mesh)
         elif isinstance(geom, r3.Brep):
             for face in geom.Faces:
                 mesh = face.GetMesh(r3.MeshType.Any)
                 if mesh:
-                    meshes.append(mesh)
-        for mesh in meshes:
+                    found.append(mesh)
+        elif isinstance(geom, r3.Mesh):
+            found.append(geom)
+
+        for mesh in found:
             verts = np.array([[mesh.Vertices[i].X, mesh.Vertices[i].Y, mesh.Vertices[i].Z]
                               for i in range(len(mesh.Vertices))], float)
             tris = []
@@ -56,55 +62,17 @@ def collect() -> list[tuple[np.ndarray, np.ndarray, int]]:
                 if len(f) > 3 and f[3] != f[2]:
                     tris.append([f[0], f[2], f[3]])
             if len(verts) and tris:
-                out.append((verts, np.array(tris, int), obj_index))
+                out.append((verts, np.array(tris, int)))
     return out
 
 
-def cluster(parts):
-    obj_ids = sorted({p[2] for p in parts})
-    obj_centre = {}
-    for oid in obj_ids:
-        pts = np.vstack([v for v, _, o in parts if o == oid])
-        obj_centre[oid] = pts.mean(axis=0)[:2]
-
-    centres = np.array([obj_centre[o] for o in obj_ids])
-    parent = list(range(len(obj_ids)))
-
-    def find(a):
-        while parent[a] != a:
-            parent[a] = parent[parent[a]]
-            a = parent[a]
-        return a
-
-    for a in range(len(obj_ids)):
-        for b in range(a + 1, len(obj_ids)):
-            if np.linalg.norm(centres[a] - centres[b]) < CLUSTER_THRESHOLD:
-                ra, rb = find(a), find(b)
-                if ra != rb:
-                    parent[rb] = ra
-
-    by_root = {}
-    for i, oid in enumerate(obj_ids):
-        by_root.setdefault(find(i), []).append(oid)
-
-    groups = []
-    for root, oids in by_root.items():
-        members = [i for i, p in enumerate(parts) if p[2] in set(oids)]
-        x = float(np.mean([centres[obj_ids.index(o)][0] for o in oids]))
-        groups.append((x, members))
-    return [g for _, g in sorted(groups)]
-
-
-def render(parts, idx_list, base_rgb) -> Image.Image:
-    verts_all, tris_all = [], []
-    offset = 0
-    for i in idx_list:
-        v, t = parts[i][0], parts[i][1]
-        verts_all.append(v)
-        tris_all.append(t + offset)
+def render(parts, base_rgb) -> Image.Image:
+    verts, tris, offset = [], [], 0
+    for v, t in parts:
+        verts.append(v)
+        tris.append(t + offset)
         offset += len(v)
-    V = np.vstack(verts_all)
-    T = np.vstack(tris_all)
+    V, T = np.vstack(verts), np.vstack(tris)
 
     view = np.array([-1.0, -1.0, -0.85])
     view /= np.linalg.norm(view)
@@ -112,13 +80,10 @@ def render(parts, idx_list, base_rgb) -> Image.Image:
     right /= np.linalg.norm(right)
     up = np.cross(right, view)
 
-    sx = V @ right
-    sy = -(V @ up)
-    depth = V @ view
+    sx, sy, depth = V @ right, -(V @ up), V @ view
 
     s = SIZE * SS
-    w, h = sx.max() - sx.min(), sy.max() - sy.min()
-    scale = (s * (1 - 2 * MARGIN)) / max(w, h)
+    scale = (s * (1 - 2 * MARGIN)) / max(sx.max() - sx.min(), sy.max() - sy.min())
     px = (sx - (sx.min() + sx.max()) / 2) * scale + s / 2
     py = (sy - (sy.min() + sy.max()) / 2) * scale + s / 2
 
@@ -128,38 +93,46 @@ def render(parts, idx_list, base_rgb) -> Image.Image:
     a, b, c = V[T[:, 0]], V[T[:, 1]], V[T[:, 2]]
     normals = np.cross(b - a, c - a)
     lengths = np.linalg.norm(normals, axis=1)
-    keep = lengths > 1e-12
-    normals[keep] /= lengths[keep, None]
+    good = lengths > 1e-12
+    normals[good] /= lengths[good, None]
     shade = np.abs(normals @ LIGHT).clip(0, 1)
-    order = np.argsort(depth[T].mean(axis=1))[::-1]
 
-    for k in order:
-        if not keep[k]:
+    for k in np.argsort(depth[T].mean(axis=1))[::-1]:
+        if not good[k]:
             continue
-        tone = 0.42 + 0.58 * shade[k]
-        rgb = tuple(int(v) for v in (base_rgb * tone).clip(0, 255))
+        rgb = tuple(int(v) for v in (base_rgb * (0.42 + 0.58 * shade[k])).clip(0, 255))
         tri = T[k]
         d.polygon([(px[tri[0]], py[tri[0]]),
                    (px[tri[1]], py[tri[1]]),
-                   (px[tri[2]], py[tri[2]])],
-                  fill=rgb + (255,))
+                   (px[tri[2]], py[tri[2]])], fill=rgb + (255,))
 
     return img.resize((SIZE, SIZE), Image.LANCZOS)
 
 
 if __name__ == "__main__":
-    SRC = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else "tokens.3dm").resolve()
-    root = pathlib.Path(__file__).resolve().parents[1]
-    out_dir = root / "assets" / "tokens"
+    src_dir = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else "../tokens").resolve()
+    out_dir = pathlib.Path(__file__).resolve().parents[1] / "assets" / "tokens"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    parts = collect()
-    groups = cluster(parts)
-    print(f"{len(parts)} meshes -> {len(groups)} models")
-
-    for n, group in enumerate(groups, 1):
+    seen, missing = set(), []
+    for path in sorted(src_dir.glob("*.3dm")):
+        dest_id = MODEL_FOR.get(path.stem.lower())
+        if dest_id is None:
+            missing.append(path.name)
+            continue
+        parts = meshes_in(path)
+        if not parts:
+            print(f"  !! {path.name}: no render meshes")
+            continue
         for suffix, colour in (("lit", LIT), ("cold", COLD)):
-            img = render(parts, group, colour)
-            path = out_dir / f"token_{n}_{suffix}.png"
-            img.save(path)
-        print(f"  model {n}: {len(group)} meshes -> token_{n}_lit.png / _cold.png")
+            render(parts, colour).save(out_dir / f"{dest_id}_{suffix}.png")
+        seen.add(dest_id)
+        faces = sum(len(t) for _, t in parts)
+        print(f"  {path.name:24} -> {dest_id:24} {len(parts):4} meshes {faces:6} faces")
+
+    for name in missing:
+        print(f"  !! unmapped file: {name}")
+    unresolved = set(MODEL_FOR.values()) - seen
+    if unresolved:
+        print(f"  !! no model rendered for: {sorted(unresolved)}")
+    print(f"{len(seen)}/{len(MODEL_FOR)} models rendered")
