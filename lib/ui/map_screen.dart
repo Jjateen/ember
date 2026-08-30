@@ -9,11 +9,15 @@ import '../domain/proximity.dart';
 import '../theme/ember_theme.dart';
 import 'game_controller.dart';
 
-/// OpenStreetMap's tile policy requires a User-Agent that identifies the app.
-/// Their public server also forbids bulk or offline use, so a real launch needs
-/// its own tile source.
+/// Both tile services are keyless but neither is unconditional: OSM forbids
+/// bulk and offline use, and Esri asks for attribution and a subscription at
+/// commercial volume. A real launch needs its own tiles.
 const String kTileUserAgent = 'dev.jjateen.ember';
-const String kTileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+const String kStreetTiles = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+const String kSatelliteTiles =
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+
+enum BaseMap { satellite, street }
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key, required this.game});
@@ -28,6 +32,12 @@ class _MapScreenState extends State<MapScreen> {
   Timer? _ticker;
   GeoPoint? _followed;
   bool _firstFix = true;
+  BaseMap _base = BaseMap.satellite;
+
+  void _zoom(double delta) {
+    final c = _map.camera;
+    _map.move(c.center, (c.zoom + delta).clamp(3.0, 19.0));
+  }
 
   @override
   void initState() {
@@ -57,64 +67,112 @@ class _MapScreenState extends State<MapScreen> {
       });
     }
 
-    return Stack(
+    return Column(
       children: [
-        FlutterMap(
-          mapController: _map,
-          options: const MapOptions(
-            initialCenter: LatLng(19.1718491, 72.8382547),
-            initialZoom: 16,
-            interactionOptions: InteractionOptions(flags: InteractiveFlag.all),
-          ),
-          children: [
-            ColorFiltered(
-              colorFilter: const ColorFilter.matrix(_desaturate),
-              child: TileLayer(
-                urlTemplate: kTileUrl,
-                userAgentPackageName: kTileUserAgent,
-                tileProvider: NetworkTileProvider(),
+        Expanded(
+          child: Stack(
+            children: [
+              FlutterMap(
+                mapController: _map,
+                options: const MapOptions(
+                  initialCenter: LatLng(19.1673500, 72.8367000),
+                  initialZoom: 16,
+                  interactionOptions: InteractionOptions(flags: InteractiveFlag.all),
+                ),
+                children: [
+                  if (_base == BaseMap.satellite)
+                    TileLayer(
+                      urlTemplate: kSatelliteTiles,
+                      userAgentPackageName: kTileUserAgent,
+                      maxNativeZoom: 19,
+                      // The camera pans continuously while walking; without a
+                      // wider buffer the map shows grey holes as tiles load.
+                      panBuffer: 2,
+                      keepBuffer: 6,
+                      tileProvider: NetworkTileProvider(),
+                    )
+                  else
+                    ColorFiltered(
+                      colorFilter: const ColorFilter.matrix(_desaturate),
+                      child: TileLayer(
+                        urlTemplate: kStreetTiles,
+                        userAgentPackageName: kTileUserAgent,
+                        panBuffer: 2,
+                        keepBuffer: 6,
+                        tileProvider: NetworkTileProvider(),
+                      ),
+                    ),
+                  if (g.trail.length > 1)
+                    PolylineLayer(polylines: [
+                      Polyline(
+                        points: [for (final t in g.trail) LatLng(t.lat, t.lng)],
+                        strokeWidth: 5,
+                        color: Ember.deepRed.withValues(alpha: 0.75),
+                        borderStrokeWidth: 2,
+                        borderColor: Colors.white.withValues(alpha: 0.85),
+                      ),
+                    ]),
+                  if (me != null)
+                    CircleLayer(circles: [
+                      CircleMarker(
+                        point: LatLng(me.lat, me.lng),
+                        radius: kUnlockRadiusM,
+                        useRadiusInMeter: true,
+                        color: Ember.red.withValues(alpha: 0.12),
+                        borderColor: Ember.red.withValues(alpha: 0.7),
+                        borderStrokeWidth: 1.6,
+                      ),
+                    ]),
+                  MarkerLayer(markers: _markers(g, me)),
+                ],
               ),
-            ),
-            if (g.trail.length > 1)
-              PolylineLayer(polylines: [
-                Polyline(
-                  points: [for (final t in g.trail) LatLng(t.lat, t.lng)],
-                  strokeWidth: 5,
-                  color: Ember.deepRed.withValues(alpha: 0.55),
-                  borderStrokeWidth: 2,
-                  borderColor: Colors.white.withValues(alpha: 0.75),
+              SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _Chip(found: g.foundCount, total: g.totalCount),
+                      const Spacer(),
+                      _Island(children: [
+                        _IslandBtn(
+                          icon: _base == BaseMap.satellite
+                              ? Icons.map_outlined
+                              : Icons.satellite_alt_outlined,
+                          onTap: () => setState(() => _base = _base == BaseMap.satellite
+                              ? BaseMap.street
+                              : BaseMap.satellite),
+                        ),
+                        const _IslandDivider(),
+                        _IslandBtn(icon: Icons.add, onTap: () => _zoom(1)),
+                        const _IslandDivider(),
+                        _IslandBtn(icon: Icons.remove, onTap: () => _zoom(-1)),
+                        const _IslandDivider(),
+                        _IslandBtn(
+                          icon: Icons.my_location,
+                          onTap: () {
+                            final at = widget.game.lastFix?.at;
+                            if (at != null) _map.move(LatLng(at.lat, at.lng), 17.2);
+                          },
+                        ),
+                      ]),
+                    ],
+                  ),
                 ),
-              ]),
-            if (me != null)
-              CircleLayer(circles: [
-                CircleMarker(
-                  point: LatLng(me.lat, me.lng),
-                  radius: kUnlockRadiusM,
-                  useRadiusInMeter: true,
-                  color: Ember.red.withValues(alpha: 0.10),
-                  borderColor: Ember.red.withValues(alpha: 0.55),
-                  borderStrokeWidth: 1.5,
-                ),
-              ]),
-            MarkerLayer(markers: _markers(g, me)),
-          ],
-        ),
-        SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Align(
-              alignment: Alignment.topLeft,
-              child: _Chip(found: g.foundCount, total: g.totalCount),
-            ),
+              ),
+              Positioned(
+                left: 8,
+                bottom: 6,
+                child: _Attribution(base: _base),
+              ),
+            ],
           ),
         ),
-        Align(
-          alignment: Alignment.bottomCenter,
-          child: _Sheet(
-            game: g,
-            nearest: g.proximity.nearest,
-            distanceM: g.proximity.distanceM,
-          ),
+        _Sheet(
+          game: g,
+          nearest: g.proximity.nearest,
+          distanceM: g.proximity.distanceM,
         ),
       ],
     );
@@ -322,6 +380,65 @@ class _Sheet extends StatelessWidget {
       ),
     );
   }
+}
+
+/// A single floating capsule, so the controls travel together and cannot be
+/// clipped by the sheet the way free-floating buttons were.
+class _Island extends StatelessWidget {
+  const _Island({required this.children});
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        decoration: BoxDecoration(
+          color: Ember.card.withValues(alpha: 0.95),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withValues(alpha: 0.22), blurRadius: 12, offset: const Offset(0, 3)),
+          ],
+        ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: children),
+      );
+}
+
+class _IslandDivider extends StatelessWidget {
+  const _IslandDivider();
+
+  @override
+  Widget build(BuildContext context) =>
+      Container(width: 26, height: 1, color: Ember.line);
+}
+
+class _IslandBtn extends StatelessWidget {
+  const _IslandBtn({required this.icon, required this.onTap});
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+        borderRadius: BorderRadius.circular(24),
+        onTap: onTap,
+        child: SizedBox(
+          width: 46,
+          height: 44,
+          child: Icon(icon, size: 21, color: Ember.ink),
+        ),
+      );
+}
+
+class _Attribution extends StatelessWidget {
+  const _Attribution({required this.base});
+  final BaseMap base;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        color: Ember.card.withValues(alpha: 0.78),
+        child: Text(
+          base == BaseMap.satellite ? 'Imagery © Esri' : '© OpenStreetMap contributors',
+          style: const TextStyle(fontSize: 8.5, color: Ember.ink),
+        ),
+      );
 }
 
 class _TrendPill extends StatelessWidget {

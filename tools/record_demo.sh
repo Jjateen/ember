@@ -22,7 +22,7 @@ adb shell pm grant "$PKG" android.permission.ACCESS_FINE_LOCATION
 adb shell pm grant "$PKG" android.permission.ACCESS_COARSE_LOCATION
 adb shell rm -f /sdcard/seg_*.mp4 >/dev/null 2>&1
 
-adb emu geo fix 72.8382547 19.1718491 >/dev/null 2>&1
+adb emu geo fix 72.8367000 19.1673500 >/dev/null 2>&1
 adb shell am start -n "$PKG/.MainActivity" >/dev/null
 sleep 10
 
@@ -31,8 +31,10 @@ adb shell "for i in \$(seq 1 $SEGMENTS); do screenrecord --time-limit $SEG --bit
 recorder=$!
 sleep 2
 
+walk_start=$(date +%s)
 python3 "$here/demo_walk.py" "${@:2}"
 walk=$?
+walk_secs=$(( $(date +%s) - walk_start + 10 ))
 
 sleep 2
 adb shell pkill -INT screenrecord >/dev/null 2>&1
@@ -54,7 +56,7 @@ for f in $(adb shell ls /sdcard/seg_*.mp4 2>/dev/null | tr -d '\r' | sort -V); d
 done
 
 if [ ! -s "$list" ]; then echo "no usable segments"; exit 1; fi
-ffmpeg -y -v error -f concat -safe 0 -i "$list" \
+ffmpeg -y -v error -f concat -safe 0 -i "$list" -t "$walk_secs" \
   -vf "fps=24,scale=540:-2" -c:v libx264 -preset veryfast -crf 26 -pix_fmt yuv420p \
   "$OUT.mp4"
 adb shell rm -f /sdcard/seg_*.mp4 >/dev/null 2>&1

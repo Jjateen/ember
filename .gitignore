@@ -47,3 +47,5 @@ app.*.map.json
 # Widget Preview related
 .widget_preview/
 commit_message.md
+dist/
+*.mp4

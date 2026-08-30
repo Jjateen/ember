@@ -9,13 +9,15 @@ import json
 import math
 import pathlib
 
-# Prem Nagar, Goregaon West, Mumbai 400104.
-ANCHOR_LAT = 19.1718491
-ANCHOR_LNG = 72.8382547
+# Centre of the Prem Nagar settlement, Goregaon West, Mumbai 400104. This is
+# the viewport centre from the reference map link, not the place pin: the pin
+# sits north of the dense area, over open ground.
+ANCHOR_LAT = 19.1673500
+ANCHOR_LNG = 72.8367000
 
 COLS = 4
 ROWS = 4
-SPACING_M = 140
+SPACING_M = 180
 
 M_PER_DEG_LAT = 111_320.0
 M_PER_DEG_LNG = M_PER_DEG_LAT * math.cos(math.radians(ANCHOR_LAT))
