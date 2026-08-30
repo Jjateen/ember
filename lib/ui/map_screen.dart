@@ -312,14 +312,13 @@ class _Sheet extends StatelessWidget {
       return _Panel(child: Text(game.permissionProblem!));
     }
     if (nearest == null) {
-      return _Panel(
-        child: Text(
-          game.foundCount == game.totalCount
-              ? 'Every place is lit. Nothing left to find.'
-              : 'Waiting for a location fix…',
-          style: const TextStyle(color: Ember.muted),
-        ),
-      );
+      final acc = game.lastFix?.accuracyM;
+      final message = game.foundCount == game.totalCount
+          ? 'Every place is lit. Nothing left to find.'
+          : acc == null
+              ? 'Looking for a location fix…'
+              : 'Searching for places nearby…';
+      return _Panel(child: Text(message, style: const TextStyle(color: Ember.muted)));
     }
 
     final d = distanceM ?? 0;
@@ -388,8 +387,13 @@ class _Sheet extends StatelessWidget {
           Text(
             dwelling
                 ? 'Stay put · ignites in ${(kDwell.inSeconds * (1 - (game.dwellProgress ?? 0))).ceil()} s'
-                : 'Ignites within ${kUnlockRadiusM.round()} m',
-            style: Theme.of(context).textTheme.labelSmall,
+                : game.preciseEnough
+                    ? 'Ignites within ${kUnlockRadiusM.round()} m'
+                    : 'GPS accurate to ${game.lastFix!.accuracyM.round()} m '
+                        '· need ${kAccuracyCapM.round()} m to unlock',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: game.preciseEnough ? null : Ember.deepRed,
+                ),
           ),
         ],
       ),

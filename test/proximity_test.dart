@@ -33,27 +33,41 @@ void main() {
     });
   });
 
-  group('isTrustworthy', () {
-    test('rejects a fix fuzzier than the accuracy cap', () {
-      expect(isTrustworthy(fix(futala, acc: kAccuracyCapM + 1)), isFalse);
-      expect(isTrustworthy(fix(futala, acc: kAccuracyCapM - 1)), isTrue);
+  group('isPlausible', () {
+    test('accepts a vague fix, because it still says roughly where you are', () {
+      // Gating the map on precision is what stranded the app on "waiting for a
+      // location fix" while the phone was reporting a position perfectly well.
+      expect(isPlausible(fix(futala, acc: kAccuracyCapM + 50)), isTrue);
     });
 
     test('rejects a mocked fix when asked to', () {
-      expect(isTrustworthy(fix(futala, mocked: true)), isFalse);
-      expect(isTrustworthy(fix(futala, mocked: true), rejectMocked: false), isTrue);
+      expect(isPlausible(fix(futala, mocked: true)), isFalse);
+      expect(isPlausible(fix(futala, mocked: true), rejectMocked: false), isTrue);
     });
 
     test('rejects a teleport between consecutive fixes', () {
       final a = fix(futala, t: DateTime(2026, 1, 1, 0, 0, 0));
       final b = fix(north(futala, 5000), t: DateTime(2026, 1, 1, 0, 0, 10));
-      expect(isTrustworthy(b, previous: a), isFalse);
+      expect(isPlausible(b, previous: a), isFalse);
     });
 
     test('accepts a plausible walking pace', () {
       final a = fix(futala, t: DateTime(2026, 1, 1, 0, 0, 0));
       final b = fix(north(futala, 15), t: DateTime(2026, 1, 1, 0, 0, 10));
-      expect(isTrustworthy(b, previous: a), isTrue);
+      expect(isPlausible(b, previous: a), isTrue);
+    });
+  });
+
+  group('isPreciseEnough', () {
+    test('separates showing a position from awarding a token', () {
+      expect(isPreciseEnough(fix(futala, acc: kAccuracyCapM - 1)), isTrue);
+      expect(isPreciseEnough(fix(futala, acc: kAccuracyCapM + 1)), isFalse);
+    });
+
+    test('tolerates the accuracy a phone actually reports outdoors', () {
+      // Real handsets commonly report 20-40 m; gating at the radius meant
+      // nothing ever unlocked in the field.
+      expect(isPreciseEnough(fix(futala, acc: 30)), isTrue);
     });
   });
 

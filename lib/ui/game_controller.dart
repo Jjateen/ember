@@ -9,11 +9,8 @@ import '../domain/models.dart';
 import '../domain/proximity.dart';
 
 /// Time the player must stay inside the radius before a place ignites. Without
-/// this, GPS drift alone flips markers on and off at a 50 m radius.
+/// this, GPS drift alone flips markers on and off at a radius this tight.
 const Duration kDwell = Duration(seconds: 15);
-
-/// The first fixes after a cold start are consistently wrong; ignore them.
-const int kWarmupFixes = 3;
 
 /// Movement smaller than this is GPS jitter, not progress, so it must not flip
 /// the warmer/colder readout back and forth while standing still.
@@ -37,7 +34,10 @@ class GameController extends ChangeNotifier {
   Timer? _dwell;
   Fix? _previous;
   Fix? lastFix;
-  int _fixCount = 0;
+
+  /// True when the last fix was precise enough to award a token. Surfaced so
+  /// the UI can explain itself instead of sitting on "waiting for a fix".
+  bool preciseEnough = false;
 
   final _events = StreamController<UnlockEvent>.broadcast();
   Stream<UnlockEvent> get unlocks => _events.stream;
@@ -82,15 +82,20 @@ class GameController extends ChangeNotifier {
     notifyListeners();
 
     if (permissionProblem != null) return;
+
     _sub = locationService.fixes().listen(_onFix, onError: (_) {});
+
+    // The stream only emits once the phone has moved, so seed a position for
+    // somebody standing still.
+    final seed = await locationService.current();
+    if (seed != null && lastFix == null) _onFix(seed);
   }
 
   void _onFix(Fix fix) {
-    if (_fixCount++ < kWarmupFixes) {
-      _previous = fix;
-      return;
-    }
-    if (!isTrustworthy(fix, previous: _previous, rejectMocked: !kDebugMode)) return;
+    if (!isPlausible(fix, previous: _previous, rejectMocked: !kDebugMode)) return;
+
+    preciseEnough = isPreciseEnough(fix);
+
     if (_previous != null) {
       trailMetres += haversineMeters(_previous!.at, fix.at);
     }
@@ -103,7 +108,11 @@ class GameController extends ChangeNotifier {
     proximity = evaluate(at: fix.at, all: destinations, unlocked: unlockedIds);
     _updateTrend(fix.at);
 
-    final target = proximity.inRadius.isEmpty ? null : proximity.inRadius.first;
+    // Position and distance are shown from any believable fix; only the reward
+    // requires precision.
+    final target = (!preciseEnough || proximity.inRadius.isEmpty)
+        ? null
+        : proximity.inRadius.first;
     if (target == null) {
       _cancelDwell();
     } else if (dwellTarget?.id != target.id) {

@@ -9,9 +9,12 @@ import 'models.dart';
 /// refusing to let real arrivals register at all.
 const double kUnlockRadiusM = 25;
 
-/// Fixes less precise than the radius cannot place a player inside it with any
-/// confidence, so they are discarded rather than trusted.
-const double kAccuracyCapM = 25;
+/// Precision required before a fix may *unlock* anything. Deliberately looser
+/// than the radius: phones routinely report 20-40 m at cold start, indoors, or
+/// between buildings, and gating at the radius meant nothing ever unlocked in
+/// the field. The fifteen-second dwell is the real filter; this only excludes
+/// garbage.
+const double kAccuracyCapM = 40;
 
 /// Implied speed above this means the fix teleported; drop it.
 const double kMaxSpeedKmh = 200;
@@ -33,10 +36,12 @@ class Fix {
   final bool isMocked;
 }
 
-/// Decides whether a fix is worth acting on. Pure, so every rejection reason
-/// is directly testable without a device.
-bool isTrustworthy(Fix fix, {Fix? previous, bool rejectMocked = true}) {
-  if (fix.accuracyM > kAccuracyCapM) return false;
+/// Whether a fix is believable enough to draw on the map.
+///
+/// Deliberately does not test precision. A vague fix still says roughly where
+/// somebody is, and refusing to show it strands the UI on "waiting for a
+/// location fix" when the phone is in fact reporting a position.
+bool isPlausible(Fix fix, {Fix? previous, bool rejectMocked = true}) {
   if (rejectMocked && fix.isMocked) return false;
   if (previous != null) {
     final seconds = fix.timestamp.difference(previous.timestamp).inMilliseconds / 1000.0;
@@ -47,6 +52,11 @@ bool isTrustworthy(Fix fix, {Fix? previous, bool rejectMocked = true}) {
   }
   return true;
 }
+
+/// Whether a fix is precise enough to award a token. Separate from
+/// [isPlausible] on purpose: showing a position and granting a reward are
+/// different levels of trust.
+bool isPreciseEnough(Fix fix) => fix.accuracyM <= kAccuracyCapM;
 
 /// The game rule, in one function: measure to everything still locked, report
 /// the nearest and anything inside the radius.

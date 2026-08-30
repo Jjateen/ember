@@ -10,6 +10,11 @@ import '../domain/proximity.dart';
 abstract class LocationService {
   Stream<Fix> fixes();
 
+  /// A position to show immediately, before the stream produces one. The
+  /// stream only emits after the phone has moved, so without this the map has
+  /// nothing to display while somebody stands still.
+  Future<Fix?> current();
+
   /// Returns null when permission was granted, or a human-readable reason.
   Future<String?> ensurePermission();
 
@@ -28,16 +33,38 @@ class GeolocatorLocationService implements LocationService {
         distanceFilter: 5,
       ),
     ).listen(
-      (p) => _out.add(Fix(
-        at: GeoPoint(p.latitude, p.longitude),
-        accuracyM: p.accuracy,
-        timestamp: p.timestamp,
-        isMocked: p.isMocked,
-      )),
+      (p) => _out.add(_toFix(p)),
       onError: _out.addError,
     );
     return _out.stream;
   }
+
+  @override
+  Future<Fix?> current() async {
+    try {
+      final last = await Geolocator.getLastKnownPosition();
+      if (last != null) return _toFix(last);
+    } catch (_) {
+      // A missing last-known position is normal on a cold device.
+    }
+    try {
+      return _toFix(await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 20),
+        ),
+      ));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Fix _toFix(Position p) => Fix(
+        at: GeoPoint(p.latitude, p.longitude),
+        accuracyM: p.accuracy,
+        timestamp: p.timestamp,
+        isMocked: p.isMocked,
+      );
 
   @override
   Future<String?> ensurePermission() async {
@@ -72,6 +99,9 @@ class FakeLocationService implements LocationService {
 
   @override
   Stream<Fix> fixes() => _out.stream;
+
+  @override
+  Future<Fix?> current() async => last;
 
   @override
   Future<String?> ensurePermission() async => null;
