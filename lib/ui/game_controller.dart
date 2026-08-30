@@ -168,7 +168,13 @@ class GameController extends ChangeNotifier {
       await progressRepo.markUnlocked(d.id);
       unlockedIds = {...unlockedIds, d.id};
       _cancelDwell();
-      proximity = ProximityResult.empty;
+      // Re-aim at the next place from the position we already have. Clearing
+      // this instead left the panel with nothing to name until another fix
+      // arrived, which never happens while somebody stands still.
+      final at = lastFix?.at;
+      proximity = at == null
+          ? ProximityResult.empty
+          : evaluate(at: at, all: destinations, unlocked: unlockedIds);
       unawaited(HapticFeedback.heavyImpact());
       _events.add(UnlockEvent(d, unlockedIds.length, destinations.length));
       notifyListeners();
