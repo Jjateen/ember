@@ -15,6 +15,13 @@ const Duration kDwell = Duration(seconds: 15);
 /// The first fixes after a cold start are consistently wrong; ignore them.
 const int kWarmupFixes = 3;
 
+/// Movement smaller than this is GPS jitter, not progress, so it must not flip
+/// the warmer/colder readout back and forth while standing still.
+const double kTrendDeadbandM = 3;
+
+/// Breadcrumbs are capped so a long session cannot grow the trail without end.
+const int kTrailLimit = 3000;
+
 class GameController extends ChangeNotifier {
   GameController({
     required this.locationService,
@@ -38,6 +45,12 @@ class GameController extends ChangeNotifier {
   List<Destination> destinations = const [];
   Set<String> unlockedIds = const {};
   ProximityResult proximity = ProximityResult.empty;
+
+  final List<GeoPoint> trail = [];
+  Trend trend = Trend.steady;
+  double? _lastDistanceM;
+  String? _lastNearestId;
+  double trailMetres = 0;
 
   String? permissionProblem;
   bool loading = true;
@@ -74,10 +87,17 @@ class GameController extends ChangeNotifier {
       return;
     }
     if (!isTrustworthy(fix, previous: _previous, rejectMocked: !kDebugMode)) return;
+    if (_previous != null) {
+      trailMetres += haversineMeters(_previous!.at, fix.at);
+    }
     _previous = fix;
     lastFix = fix;
 
+    trail.add(fix.at);
+    if (trail.length > kTrailLimit) trail.removeAt(0);
+
     proximity = evaluate(at: fix.at, all: destinations, unlocked: unlockedIds);
+    _updateTrend();
 
     final target = proximity.inRadius.isEmpty ? null : proximity.inRadius.first;
     if (target == null) {
@@ -86,6 +106,21 @@ class GameController extends ChangeNotifier {
       _startDwell(target);
     }
     notifyListeners();
+  }
+
+  void _updateTrend() {
+    final d = proximity.distanceM;
+    final id = proximity.nearest?.id;
+    if (d == null || id == null || id != _lastNearestId || _lastDistanceM == null) {
+      trend = Trend.steady;
+    } else {
+      final delta = d - _lastDistanceM!;
+      trend = delta < -kTrendDeadbandM
+          ? Trend.warmer
+          : (delta > kTrendDeadbandM ? Trend.colder : Trend.steady);
+    }
+    _lastDistanceM = d;
+    _lastNearestId = id;
   }
 
   void _startDwell(Destination d) {
@@ -126,6 +161,8 @@ class GameController extends ChangeNotifier {
   Future<void> resetProgress() async {
     await progressRepo.reset();
     unlockedIds = const {};
+    trail.clear();
+    trailMetres = 0;
     _cancelDwell();
     notifyListeners();
   }

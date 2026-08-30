@@ -26,7 +26,8 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   final _map = MapController();
   Timer? _ticker;
-  bool _centredOnce = false;
+  GeoPoint? _followed;
+  bool _firstFix = true;
 
   @override
   void initState() {
@@ -47,10 +48,12 @@ class _MapScreenState extends State<MapScreen> {
     final g = widget.game;
     final me = g.lastFix?.at;
 
-    if (me != null && !_centredOnce) {
-      _centredOnce = true;
+    if (me != null && (me.lat != _followed?.lat || me.lng != _followed?.lng)) {
+      _followed = me;
+      final zoom = _firstFix ? 16.8 : _map.camera.zoom;
+      _firstFix = false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _map.move(LatLng(me.lat, me.lng), 16.6);
+        if (mounted) _map.move(LatLng(me.lat, me.lng), zoom);
       });
     }
 
@@ -72,6 +75,16 @@ class _MapScreenState extends State<MapScreen> {
                 tileProvider: NetworkTileProvider(),
               ),
             ),
+            if (g.trail.length > 1)
+              PolylineLayer(polylines: [
+                Polyline(
+                  points: [for (final t in g.trail) LatLng(t.lat, t.lng)],
+                  strokeWidth: 5,
+                  color: Ember.deepRed.withValues(alpha: 0.55),
+                  borderStrokeWidth: 2,
+                  borderColor: Colors.white.withValues(alpha: 0.75),
+                ),
+              ]),
             if (me != null)
               CircleLayer(circles: [
                 CircleMarker(
@@ -249,11 +262,24 @@ class _Sheet extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            dwelling ? 'HOLD POSITION' : (warm ? 'NEAREST · WARMING' : 'NEAREST · COLD'),
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: warm ? Ember.red : Ember.muted,
-                ),
+          Row(
+            children: [
+              Text(
+                dwelling ? 'HOLD POSITION' : 'NEAREST',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: warm ? Ember.red : Ember.muted,
+                    ),
+              ),
+              if (!dwelling) ...[
+                const SizedBox(width: 8),
+                _TrendPill(trend: game.trend),
+              ],
+              const Spacer(),
+              Text(
+                '${(game.trailMetres / 1000).toStringAsFixed(2)} km walked',
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
+            ],
           ),
           const SizedBox(height: 3),
           Text(nearest!.name, style: Theme.of(context).textTheme.titleLarge),
@@ -294,6 +320,34 @@ class _Sheet extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _TrendPill extends StatelessWidget {
+  const _TrendPill({required this.trend});
+  final Trend trend;
+
+  @override
+  Widget build(BuildContext context) {
+    final (label, icon, fg) = switch (trend) {
+      Trend.warmer => ('WARMER', Icons.arrow_upward_rounded, Ember.red),
+      Trend.colder => ('COLDER', Icons.arrow_downward_rounded, Ember.muted),
+      Trend.steady => ('HOLDING', Icons.remove_rounded, Ember.muted),
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        color: trend == Trend.warmer ? Ember.coral.withValues(alpha: 0.22) : Ember.sage,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(icon, size: 11, color: fg),
+        const SizedBox(width: 3),
+        Text(label,
+            style: TextStyle(
+                fontSize: 9, letterSpacing: 1.2, fontWeight: FontWeight.w700, color: fg)),
+      ]),
     );
   }
 }

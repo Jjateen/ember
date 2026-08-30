@@ -1,15 +1,46 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../domain/models.dart';
 import '../theme/ember_theme.dart';
 
-class IgnitionScreen extends StatelessWidget {
+/// The reward is a moment, not a dialog to dismiss. It clears itself so a run
+/// of quick unlocks cannot bury the map under a stack of these.
+const Duration kIgnitionDwell = Duration(milliseconds: 3600);
+
+class IgnitionScreen extends StatefulWidget {
   const IgnitionScreen({super.key, required this.event});
   final UnlockEvent event;
 
   @override
+  State<IgnitionScreen> createState() => _IgnitionScreenState();
+}
+
+class _IgnitionScreenState extends State<IgnitionScreen> {
+  Timer? _auto;
+
+  @override
+  void initState() {
+    super.initState();
+    _auto = Timer(kIgnitionDwell, _close);
+  }
+
+  void _close() {
+    _auto?.cancel();
+    if (mounted && Navigator.of(context).canPop()) Navigator.of(context).pop();
+  }
+
+  @override
+  void dispose() {
+    _auto?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final d = event.destination;
+    final d = widget.event.destination;
+    final event = widget.event;
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -97,7 +128,7 @@ class IgnitionScreen extends StatelessWidget {
                       backgroundColor: Colors.white,
                       foregroundColor: Ember.red,
                     ),
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: _close,
                     child: const Text('ADD TO TRAY'),
                   ),
                 ),

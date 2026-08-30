@@ -2,6 +2,9 @@ import 'dart:math' as math;
 
 enum Rarity { common, uncommon, rare }
 
+/// Whether the last movement closed on the nearest cold place or not.
+enum Trend { warmer, colder, steady }
+
 class GeoPoint {
   const GeoPoint(this.lat, this.lng);
   final double lat;

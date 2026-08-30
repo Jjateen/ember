@@ -32,14 +32,18 @@ class EmberApp extends StatefulWidget {
 class _EmberAppState extends State<EmberApp> {
   final _navKey = GlobalKey<NavigatorState>();
   StreamSubscription? _unlockSub;
+  bool _ignitionVisible = false;
 
   @override
   void initState() {
     super.initState();
-    _unlockSub = widget.game.unlocks.listen((e) {
-      _navKey.currentState?.push(
+    _unlockSub = widget.game.unlocks.listen((e) async {
+      if (_ignitionVisible) return;
+      _ignitionVisible = true;
+      await _navKey.currentState?.push(
         MaterialPageRoute(builder: (_) => IgnitionScreen(event: e), fullscreenDialog: true),
       );
+      _ignitionVisible = false;
     });
     widget.game.start();
   }
