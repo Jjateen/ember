@@ -28,6 +28,17 @@ require_device() {
 # and the walk reports every point as visited.
 require_device "before start"
 
+# An interrupted run can leave screenrecord alive on the device. Two loops
+# writing the same segment files interleaves them, and the stitched video then
+# jumps backwards in time.
+if [ "$(adb shell pgrep screenrecord 2>/dev/null | wc -l)" -gt 0 ]; then
+  echo "== stopping stale recorder =="
+  adb shell pkill -INT screenrecord >/dev/null 2>&1
+  sleep 3
+  adb shell pkill -9 screenrecord >/dev/null 2>&1
+fi
+adb shell rm -f /sdcard/seg_*.mp4 >/dev/null 2>&1
+
 echo "== resetting app state =="
 adb shell pm clear "$PKG" >/dev/null
 adb shell pm grant "$PKG" android.permission.ACCESS_FINE_LOCATION
@@ -49,6 +60,8 @@ walk_start=$(date +%s)
 python3 "$here/demo_walk.py" "${@:2}"
 walk=$?
 walk_secs=$(( $(date +%s) - walk_start + 10 ))
+# -t limits the OUTPUT, which setpts has already shortened.
+out_secs=$(( walk_secs / SPEEDUP + 4 ))
 
 require_device "after walk"
 
@@ -73,7 +86,7 @@ done
 
 if [ ! -s "$list" ]; then echo "no usable segments"; exit 1; fi
 # The walk runs at real pace, so the recording is sped up to stay watchable.
-ffmpeg -y -v error -f concat -safe 0 -i "$list" -t "$walk_secs" \
+ffmpeg -y -v error -f concat -safe 0 -i "$list" -t "$out_secs" \
   -vf "setpts=PTS/${SPEEDUP},fps=24,scale=540:-2" \
   -c:v libx264 -preset veryfast -crf 26 -pix_fmt yuv420p \
   "$OUT.mp4"
