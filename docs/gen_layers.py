@@ -28,7 +28,7 @@ BANDS = [
             "  builder: (ctx, _) => GoogleMap(",
             "    markers:  viewModel.markers,",
             "    circles:  viewModel.rangeRing,",
-            "    style:    kDarkMapStyle))",
+            "    tiles:    Esri | OSM))",
         ]),
         ("TrayScreen · PlaceSheet · IgnitionScreen", [
             "GridView.builder  -> 60 token tiles",
@@ -45,6 +45,7 @@ BANDS = [
             "  StreamSubscription<Position>? _sub;",
             "  Timer?      _dwell;",
             "  Set<String> _unlocked = {};",
+            "  List<GeoPoint> trail;     Trend trend;",
             "  final _events = StreamController<UnlockEvent>.broadcast();",
             "",
             "  Stream<UnlockEvent> get unlocks => _events.stream;",
@@ -55,8 +56,8 @@ BANDS = [
         ("MapViewModel · route-scoped", [
             "class MapViewModel extends ChangeNotifier {",
             "  Command0<void> load;",
-            "  Set<Marker> markers;    // rebuilt ONLY",
-            "  Set<Circle> rangeRing;  // on unlock",
+            "  List<Marker> markers;   // widgets, cheap",
+            "  Polyline trail;         // breadcrumbs",
             "  ProximityView? nearest; // per GPS tick",
             "}",
             "",
@@ -130,7 +131,9 @@ BANDS = [
         ]),
         ("AssetBundleService", [
             "Future<String> loadString(String path);",
-            "  -> rootBundle.loadString()",
+            "  -> destinations.json",
+            "  -> assets/tokens/*.png  (rendered",
+            "     from the Rhino models)",
         ]),
      ]),
     ("6  PLUGINS  ->  PLATFORM CHANNELS  ->  NATIVE SDKs", "Async message passing across the Dart/native boundary. Everything above runs on the UI isolate.",
@@ -143,13 +146,12 @@ BANDS = [
             "NOTE: geolocator has no geofencing API.",
             "Region monitoring needs native_geofence.",
         ]),
-        ("google_maps_flutter 2.18.0", [
-            "PlatformView, TLHC mode (the default)",
-            "Android: Maps SDK 20.x",
-            "iOS:     GMS 10.x  (pin _ios_sdk10)",
+        ("flutter_map 8.3.2 + latlong2", [
+            "Pure Dart canvas, no platform view.",
+            "Markers are ordinary widgets.",
             "",
-            "NEVER set mapId -> stays on the",
-            "$0 unlimited Maps SDK SKU",
+            "Tiles: Esri imagery (native max z19)",
+            "       OSM streets, both keyless",
         ]),
         ("shared_preferences 2.5.5", [
             "MethodChannel",

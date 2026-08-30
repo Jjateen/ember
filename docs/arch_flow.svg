@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="1314" viewBox="0 0 1280 1314" font-family="DejaVu Sans, Verdana, sans-serif">
+<defs><marker id="a" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,1 L10,6 L0,11 z" fill="#333"/></marker></defs>
+<rect width="1280" height="1314" fill="#ffffff"/>
+<text x="34" y="52" font-size="27" font-weight="bold" fill="#111">Ember &#8212; one GPS fix, end to end</text>
+<text x="34" y="77" font-size="14.3" fill="#666">The only flow in the app that matters. Every other screen is a list or a sheet.</text>
+<rect x="250" y="106" width="780" height="77" rx="7" fill="#EFEFEF" stroke="#9E9E9E" stroke-width="1.8"/>
+<text x="264" y="129" font-size="13.6" font-weight="bold" fill="#444444">CLLocationManager  /  FusedLocationProviderClient</text>
+<text x="264" y="149.0" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">OS delivers a fix. distanceFilter: 5 means at most one callback</text>
+<text x="264" y="165.5" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">per 5 m moved, not one per second.</text>
+<line x1="640" y1="187.0" x2="640" y2="210.0" stroke="#333" stroke-width="2.2" marker-end="url(#a)"/>
+<rect x="250" y="214.0" width="780" height="60" rx="7" fill="#EFEFEF" stroke="#9E9E9E" stroke-width="1.8"/>
+<text x="264" y="237.0" font-size="13.6" font-weight="bold" fill="#444444">geolocator  &#183;  EventChannel  &#8594;  Stream&lt;Position&gt;</text>
+<text x="264" y="257.0" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">Position { latitude, longitude, accuracy, speed, isMocked, timestamp }</text>
+<line x1="640" y1="278.5" x2="640" y2="301.5" stroke="#333" stroke-width="2.2" marker-end="url(#a)"/>
+<rect x="250" y="305.5" width="780" height="77" rx="7" fill="#FEF3E4" stroke="#D9A441" stroke-width="1.8"/>
+<text x="264" y="328.5" font-size="13.6" font-weight="bold" fill="#8A5A00">GameController._onPosition(Position p)</text>
+<text x="264" y="348.5" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">One subscription, owned app-wide. Cancelled in dispose(),</text>
+<text x="264" y="365.0" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">paused on AppLifecycleState.paused so a backgrounded app stops drawing power.</text>
+<line x1="640" y1="386.5" x2="640" y2="409.5" stroke="#333" stroke-width="2.2" marker-end="url(#a)"/>
+<rect x="250" y="413.5" width="780" height="110" rx="7" fill="#FDECEA" stroke="#E0796F" stroke-width="1.8"/>
+<text x="264" y="436.5" font-size="13.6" font-weight="bold" fill="#B03024">GUARD  &#183;  reject untrustworthy fixes</text>
+<text x="264" y="456.5" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">if (p.accuracy > 25)                   return;  // vaguer than the radius</text>
+<text x="264" y="473.0" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">if (p.isMocked)                        return;  // Android mock provider</text>
+<text x="264" y="489.5" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">if (impliedSpeed(p, _last) > 200)      return;  // km/h; teleport</text>
+<text x="264" y="506.0" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">if (_fixCount++ &lt; 3)                   return;  // cold-start junk</text>
+<text x="252" y="538" font-size="11.8" fill="#7A2321" font-style="italic">Dropped fixes never reach the game rules. The first few fixes after a cold start are always noise.</text>
+<line x1="640" y1="546.5" x2="640" y2="569.5" stroke="#333" stroke-width="2.2" marker-end="url(#a)"/>
+<rect x="250" y="573.5" width="780" height="126" rx="7" fill="#FDECEC" stroke="#E26868" stroke-width="1.8"/>
+<text x="264" y="596.5" font-size="13.6" font-weight="bold" fill="#B94F4F">proximity.evaluate(...)  &#8594;  ProximityResult</text>
+<text x="264" y="616.5" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">for (final d in all.where((d) => !unlocked.contains(d.id)))</text>
+<text x="264" y="633.0" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">  haversineMeters(p, d.at);</text>
+<text x="264" y="649.5" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve"></text>
+<text x="264" y="666.0" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">returns ProximityResult { nearest, distanceM, inRadius }</text>
+<text x="264" y="682.5" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">                            ^ sorted nearest first</text>
+<text x="252" y="715" font-size="11.8" fill="#7A2321" font-style="italic">Pure function: no await, no plugin import, no Flutter import. This is the line every unit test</text>
+<text x="252" y="730" font-size="11.8" fill="#7A2321" font-style="italic">exercises.</text>
+<line x1="640" y1="738.0" x2="640" y2="761.0" stroke="#333" stroke-width="2.2" marker-end="url(#a)"/>
+<line x1="640" y1="734.0" x2="640" y2="751.0" stroke="#333" stroke-width="2.2"/>
+<line x1="325" y1="751.0" x2="955" y2="751.0" stroke="#333" stroke-width="2.2"/>
+<line x1="325" y1="751.0" x2="325" y2="768.0" stroke="#333" stroke-width="2.2" marker-end="url(#a)"/>
+<line x1="955" y1="751.0" x2="955" y2="768.0" stroke="#333" stroke-width="2.2" marker-end="url(#a)"/>
+<rect x="30" y="773.0" width="590" height="110" rx="7" fill="#FEF3E4" stroke="#D9A441" stroke-width="1.8"/>
+<text x="44" y="796.0" font-size="13.6" font-weight="bold" fill="#8A5A00">EVERY fix  &#8594;  notifyListeners()</text>
+<text x="44" y="816.0" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">Updates the sheet, the range ring, the trail</text>
+<text x="44" y="832.5" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">and the warmer/colder readout.</text>
+<text x="44" y="849.0" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve"></text>
+<text x="44" y="865.5" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">Trend compares against the SAME place.</text>
+<text x="32" y="898" font-size="11.8" fill="#7A2321" font-style="italic">Comparing against whatever was nearest last time pins this to steady.</text>
+<rect x="660" y="773.0" width="590" height="126" rx="7" fill="#FEF3E4" stroke="#D9A441" stroke-width="1.8"/>
+<text x="674" y="796.0" font-size="13.6" font-weight="bold" fill="#8A5A00">IN RADIUS  &#8594;  start the dwell timer</text>
+<text x="674" y="816.0" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">_dwell ??= Timer(const Duration(seconds: 15),</text>
+<text x="674" y="832.5" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">                 () => _onDwellComplete(d));</text>
+<text x="674" y="849.0" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve"></text>
+<text x="674" y="865.5" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">// on leaving the radius:</text>
+<text x="674" y="882.0" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">_dwell?.cancel(); _dwell = null;</text>
+<text x="662" y="914" font-size="11.8" fill="#7A2321" font-style="italic">The dwell timer is what lets a 25 m radius survive GPS drift.</text>
+<line x1="955" y1="924.5" x2="955" y2="944.5" stroke="#333" stroke-width="2.2"/>
+<line x1="955" y1="944.5" x2="640" y2="944.5" stroke="#333" stroke-width="2.2"/>
+<line x1="640" y1="944.5" x2="640" y2="964.5" stroke="#333" stroke-width="2.2" marker-end="url(#a)"/>
+<text x="654" y="940.5" font-size="11.5" fill="#555" font-family="DejaVu Sans Mono, Consolas, monospace">timer completes: 15 s held inside the radius</text>
+<rect x="250" y="970.5" width="780" height="160" rx="7" fill="#F1EAF6" stroke="#9673A6" stroke-width="1.8"/>
+<text x="264" y="993.5" font-size="13.6" font-weight="bold" fill="#6B3E8F">await progressRepository.markUnlocked(d.id)</text>
+<text x="264" y="1013.5" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">Future&lt;Result&lt;void&gt;&gt;  &#8212;  awaited BEFORE anything visible happens.</text>
+<text x="264" y="1030.0" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">SharedPreferencesAsync.setStringList('unlocked', [...]);</text>
+<text x="264" y="1046.5" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve"></text>
+<text x="264" y="1063.0" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">switch (result) {</text>
+<text x="264" y="1079.5" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">  case Ok():     break;</text>
+<text x="264" y="1096.0" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">  case Error():  return;   // no reward if the write failed</text>
+<text x="264" y="1112.5" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">}</text>
+<text x="252" y="1145" font-size="11.8" fill="#7A2321" font-style="italic">Persist first, celebrate second. A crash mid-animation must not eat a place the player physically walked</text>
+<text x="252" y="1160" font-size="11.8" fill="#7A2321" font-style="italic">to.</text>
+<line x1="640" y1="1168.0" x2="640" y2="1191.0" stroke="#333" stroke-width="2.2" marker-end="url(#a)"/>
+<rect x="250" y="1195.0" width="780" height="94" rx="7" fill="#D9EAD3" stroke="#82B366" stroke-width="1.8"/>
+<text x="264" y="1218.0" font-size="13.6" font-weight="bold" fill="#3C7020">_events.add(UnlockEvent(d))   +   notifyListeners()</text>
+<text x="264" y="1238.0" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">HapticFeedback.heavyImpact();</text>
+<text x="264" y="1254.5" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">Navigator.push(IgnitionRoute(d));</text>
+<text x="264" y="1271.0" font-size="11.7" fill="#333" font-family="DejaVu Sans Mono, Consolas, monospace" xml:space="preserve">mapViewModel.rebuildMarkers();   // the ONE place markers are rebuilt</text>
+</svg>

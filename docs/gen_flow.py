@@ -20,15 +20,15 @@ ROLE = {
 
 HEAD = [
     ("native", "CLLocationManager  /  FusedLocationProviderClient",
-     ["OS delivers a fix. distanceFilter: 10 means at most one callback",
-      "per 10 m moved, not one per second."], ""),
+     ["OS delivers a fix. distanceFilter: 5 means at most one callback",
+      "per 5 m moved, not one per second."], ""),
     ("chan", "geolocator  &#183;  EventChannel  &#8594;  Stream&lt;Position&gt;",
      ["Position { latitude, longitude, accuracy, speed, isMocked, timestamp }"], ""),
     ("vm", "GameController._onPosition(Position p)",
      ["One subscription, owned app-wide. Cancelled in dispose(),",
       "paused on AppLifecycleState.paused so a backgrounded app stops drawing power."], ""),
     ("guard", "GUARD  &#183;  reject untrustworthy fixes",
-     ["if (p.accuracy > 50)                   return;  // fix too fuzzy to trust",
+     ["if (p.accuracy > 25)                   return;  // vaguer than the radius",
       "if (p.isMocked)                        return;  // Android mock provider",
       "if (impliedSpeed(p, _last) > 200)      return;  // km/h; teleport",
       "if (_fixCount++ &lt; 3)                   return;  // cold-start junk"],
@@ -37,16 +37,17 @@ HEAD = [
      ["for (final d in all.where((d) => !unlocked.contains(d.id)))",
       "  haversineMeters(p, d.at);",
       "",
-      "returns ProximityResult { nearest, distanceM, inRadius }"],
+      "returns ProximityResult { nearest, distanceM, inRadius }",
+      "                            ^ sorted nearest first"],
      "Pure function: no await, no plugin import, no Flutter import. This is the line every unit test exercises."),
 ]
 
 BRANCH_L = ("vm", "EVERY fix  &#8594;  notifyListeners()",
-            ["Rebuilds the bottom sheet and the range ring only.",
-             "Fires roughly once per 10 m walked.",
+            ["Updates the sheet, the range ring, the trail",
+             "and the warmer/colder readout.",
              "",
-             "markers is NOT reassigned on this path."],
-            "Rebuilding Set&lt;Marker&gt; here is the bug that freezes the map.")
+             "Trend compares against the SAME place."],
+            "Comparing against whatever was nearest last time pins this to steady.")
 
 BRANCH_R = ("vm", "IN RADIUS  &#8594;  start the dwell timer",
             ["_dwell ??= Timer(const Duration(seconds: 15),",
@@ -54,7 +55,7 @@ BRANCH_R = ("vm", "IN RADIUS  &#8594;  start the dwell timer",
              "",
              "// on leaving the radius:",
              "_dwell?.cancel(); _dwell = null;"],
-            "The dwell timer is what lets a 50 m radius survive GPS drift.")
+            "The dwell timer is what lets a 25 m radius survive GPS drift.")
 
 TAIL = [
     ("persist", "await progressRepository.markUnlocked(d.id)",
