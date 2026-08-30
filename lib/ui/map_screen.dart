@@ -9,22 +9,41 @@ import '../domain/proximity.dart';
 import '../theme/ember_theme.dart';
 import 'game_controller.dart';
 
-/// Both tile services are keyless but neither is unconditional: OSM forbids
-/// bulk and offline use, and Esri asks for attribution and a subscription at
-/// commercial volume. A real launch needs its own tiles.
+/// Both keyless tile services are conditional: OSM forbids bulk and offline
+/// use, and Esri asks for attribution and a subscription at commercial volume.
+/// A real launch needs its own tiles.
 const String kTileUserAgent = 'dev.jjateen.ember';
 const String kStreetTiles = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-const String kSatelliteTiles =
+
+/// Supplying a Mapbox token swaps in imagery that keeps going past the point
+/// where the free source stops:
+///
+///     flutter build apk --release --dart-define=MAPBOX_TOKEN=pk.your_token
+///
+/// Esri serves this area only to zoom 19, roughly 28 cm per pixel, and returns
+/// blank tiles above it. Mapbox carries native tiles to 22 over cities, which
+/// is the difference between a rooftop being a smudge and a lane being legible.
+const String kMapboxToken = String.fromEnvironment('MAPBOX_TOKEN');
+const bool kHasMapbox = kMapboxToken != '';
+
+const String kEsriImagery =
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+const String kMapboxImagery =
+    'https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.jpg90'
+    '?access_token=$kMapboxToken';
+
+const String kSatelliteTiles = kHasMapbox ? kMapboxImagery : kEsriImagery;
+
+/// Deepest zoom the imagery actually has tiles for. Past this the layer
+/// upscales rather than disappearing.
+const int kSatelliteNativeMax = kHasMapbox ? 22 : 19;
 
 enum BaseMap { satellite, street }
 
-/// Esri serves imagery for this area up to zoom 19 and returns blank tiles
-/// beyond it, so 19 is the real detail ceiling: roughly 28 cm per pixel, which
-/// resolves roofs but renders a 1.5 m lane only a few pixels wide. One extra
-/// level of upscaling is allowed for placing yourself precisely; past that the
-/// picture gets bigger without getting clearer.
-const double kMaxZoom = 20.5;
+/// How far the map will zoom. With real tiles underneath it goes to their
+/// native depth; on the free source it allows a little upscaling for placing
+/// yourself precisely, past which the picture grows without gaining detail.
+const double kMaxZoom = kHasMapbox ? 22 : 20.5;
 
 /// Close enough that individual roofs and the gaps between them read as lanes.
 /// At this level the view spans roughly 150 m, against 700 m at zoom 17.8.
@@ -96,8 +115,10 @@ class _MapScreenState extends State<MapScreen> {
                     TileLayer(
                       urlTemplate: kSatelliteTiles,
                       userAgentPackageName: kTileUserAgent,
-                      maxNativeZoom: 19,
-                      maxZoom: kMaxZoom,
+                      // maxNativeZoom upscales past the deepest tiles that
+                      // exist. Setting maxZoom here instead hides the layer
+                      // entirely above it, which blanked the map when zoomed in.
+                      maxNativeZoom: kSatelliteNativeMax,
                       // The camera pans continuously while walking; without a
                       // wider buffer the map shows grey holes as tiles load.
                       panBuffer: 2,
@@ -113,7 +134,6 @@ class _MapScreenState extends State<MapScreen> {
                         panBuffer: 2,
                         keepBuffer: 6,
                         maxNativeZoom: 19,
-                        maxZoom: kMaxZoom,
                         tileProvider: NetworkTileProvider(),
                       ),
                     ),
@@ -454,7 +474,9 @@ class _Attribution extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         color: Ember.card.withValues(alpha: 0.78),
         child: Text(
-          base == BaseMap.satellite ? 'Imagery © Esri' : '© OpenStreetMap contributors',
+          base == BaseMap.satellite
+              ? (kHasMapbox ? 'Imagery © Mapbox' : 'Imagery © Esri')
+              : '© OpenStreetMap contributors',
           style: const TextStyle(fontSize: 8.5, color: Ember.ink),
         ),
       );

@@ -83,12 +83,22 @@ widgets rather than bitmaps marshalled across a platform channel. The trade-off
 is real: these tile services carry no uptime guarantee and forbid bulk or
 offline fetching, so anything with real users needs its own tile source.
 
-**Zoom stops at 20 on purpose.** Esri serves imagery for the survey area up to
-zoom 19 and returns blank placeholder tiles above it, so 19 is the true detail
-ceiling at roughly 28 cm per pixel. One level of upscaling helps with placing
-yourself; past that the picture grows without gaining detail. Lane-level clarity
-is not reachable here from free sources, because the lanes are absent from every
-street map tested as well.
+**Imagery detail is capped by the free source, not by the app.** Esri serves
+the survey area to zoom 19, roughly 28 cm per pixel, and returns blank tiles
+above it. Past that the layer upscales, so the picture grows without gaining
+detail. Lane-level clarity is not reachable from free sources at all: the lanes
+are absent from every street map tested as well, which is why routing detours
+over a kilometre around a seventy-metre gap.
+
+Supplying a Mapbox token swaps in imagery with native tiles to zoom 22 over
+cities, and raises the zoom ceiling to match:
+
+```bash
+flutter build apk --release --dart-define=MAPBOX_TOKEN=pk.your_token
+```
+
+Without it the app falls back to Esri and behaves exactly as before. The
+attribution follows whichever source is in use.
 
 ## Token art
 
