@@ -1,92 +1,146 @@
 [
   {
-    "id": "futala_lake",
-    "name": "Futala Lake",
-    "lat": 21.1466,
-    "lng": 79.0350,
-    "token": "Lake Explorer Token",
-    "rarity": "uncommon",
-    "hint": "Stand anywhere on the northern promenade. The food stalls open around six and the whole kerb lights up."
-  },
-  {
-    "id": "ambazari_lake",
-    "name": "Ambazari Lake",
-    "lat": 21.1307,
-    "lng": 79.0281,
-    "token": "Still Water Token",
-    "rarity": "common",
-    "hint": "The garden gate on the eastern side is the easiest way in."
-  },
-  {
-    "id": "deekshabhoomi",
-    "name": "Deekshabhoomi",
-    "lat": 21.1279,
-    "lng": 79.0507,
-    "token": "Great Stupa Token",
+    "id": "premnagar_a1",
+    "name": "Prem Nagar A1",
+    "lat": 19.173736,
+    "lng": 72.836257,
+    "token": "A1 Coverage Token",
     "rarity": "rare",
-    "hint": "The white dome is visible long before you arrive. Aim for the main entrance off the ring road."
+    "hint": "Grid point A1, outer edge of the coverage area. Roughly 140 m from its neighbours."
   },
   {
-    "id": "zero_mile",
-    "name": "Zero Mile Stone",
-    "lat": 21.1498,
-    "lng": 79.0821,
-    "token": "Centre of India Token",
-    "rarity": "rare",
-    "hint": "A sandstone pillar and four horses, tucked beside the road near the GPO."
-  },
-  {
-    "id": "sitabuldi_fort",
-    "name": "Sitabuldi Fort",
-    "lat": 21.1458,
-    "lng": 79.0806,
-    "token": "Hilltop Token",
+    "id": "premnagar_a2",
+    "name": "Prem Nagar A2",
+    "lat": 19.173736,
+    "lng": 72.837589,
+    "token": "A2 Coverage Token",
     "rarity": "uncommon",
-    "hint": "On the hill above the market. Open to visitors only on selected days."
+    "hint": "Grid point A2, outer edge of the coverage area. Roughly 140 m from its neighbours."
   },
   {
-    "id": "maharajbagh",
-    "name": "Maharajbagh Zoo",
-    "lat": 21.1400,
-    "lng": 79.0653,
-    "token": "Old Garden Token",
-    "rarity": "common",
-    "hint": "The botanical garden entrance, opposite the agricultural college."
-  },
-  {
-    "id": "raman_science",
-    "name": "Raman Science Centre",
-    "lat": 21.1447,
-    "lng": 79.0664,
-    "token": "Planetarium Token",
-    "rarity": "common",
-    "hint": "Look for the dome. The forecourt counts, you do not need a ticket."
-  },
-  {
-    "id": "seminary_hills",
-    "name": "Seminary Hills",
-    "lat": 21.1667,
-    "lng": 79.0500,
-    "token": "Ridge Walker Token",
+    "id": "premnagar_a3",
+    "name": "Prem Nagar A3",
+    "lat": 19.173736,
+    "lng": 72.83892,
+    "token": "A3 Coverage Token",
     "rarity": "uncommon",
-    "hint": "Anywhere along the top road. Best at first light."
+    "hint": "Grid point A3, outer edge of the coverage area. Roughly 140 m from its neighbours."
   },
   {
-    "id": "telankhedi_garden",
-    "name": "Telankhedi Garden",
-    "lat": 21.1520,
-    "lng": 79.0430,
-    "token": "Rose Garden Token",
-    "rarity": "common",
-    "hint": "Behind the Hanuman temple, above Futala."
-  },
-  {
-    "id": "iiit_nagpur",
-    "name": "IIIT Nagpur",
-    "lat": 21.0043,
-    "lng": 79.0490,
-    "token": "Campus Token",
+    "id": "premnagar_a4",
+    "name": "Prem Nagar A4",
+    "lat": 19.173736,
+    "lng": 72.840252,
+    "token": "A4 Coverage Token",
     "rarity": "rare",
-    "hint": "The far one. Out past Butibori, and worth the ride."
+    "hint": "Grid point A4, outer edge of the coverage area. Roughly 140 m from its neighbours."
+  },
+  {
+    "id": "premnagar_b1",
+    "name": "Prem Nagar B1",
+    "lat": 19.172478,
+    "lng": 72.836257,
+    "token": "B1 Coverage Token",
+    "rarity": "uncommon",
+    "hint": "Grid point B1, outer edge of the coverage area. Roughly 140 m from its neighbours."
+  },
+  {
+    "id": "premnagar_b2",
+    "name": "Prem Nagar B2",
+    "lat": 19.172478,
+    "lng": 72.837589,
+    "token": "B2 Coverage Token",
+    "rarity": "common",
+    "hint": "Grid point B2, middle band of the coverage area. Roughly 140 m from its neighbours."
+  },
+  {
+    "id": "premnagar_b3",
+    "name": "Prem Nagar B3",
+    "lat": 19.172478,
+    "lng": 72.83892,
+    "token": "B3 Coverage Token",
+    "rarity": "common",
+    "hint": "Grid point B3, middle band of the coverage area. Roughly 140 m from its neighbours."
+  },
+  {
+    "id": "premnagar_b4",
+    "name": "Prem Nagar B4",
+    "lat": 19.172478,
+    "lng": 72.840252,
+    "token": "B4 Coverage Token",
+    "rarity": "uncommon",
+    "hint": "Grid point B4, outer edge of the coverage area. Roughly 140 m from its neighbours."
+  },
+  {
+    "id": "premnagar_c1",
+    "name": "Prem Nagar C1",
+    "lat": 19.17122,
+    "lng": 72.836257,
+    "token": "C1 Coverage Token",
+    "rarity": "uncommon",
+    "hint": "Grid point C1, outer edge of the coverage area. Roughly 140 m from its neighbours."
+  },
+  {
+    "id": "premnagar_c2",
+    "name": "Prem Nagar C2",
+    "lat": 19.17122,
+    "lng": 72.837589,
+    "token": "C2 Coverage Token",
+    "rarity": "common",
+    "hint": "Grid point C2, middle band of the coverage area. Roughly 140 m from its neighbours."
+  },
+  {
+    "id": "premnagar_c3",
+    "name": "Prem Nagar C3",
+    "lat": 19.17122,
+    "lng": 72.83892,
+    "token": "C3 Coverage Token",
+    "rarity": "common",
+    "hint": "Grid point C3, middle band of the coverage area. Roughly 140 m from its neighbours."
+  },
+  {
+    "id": "premnagar_c4",
+    "name": "Prem Nagar C4",
+    "lat": 19.17122,
+    "lng": 72.840252,
+    "token": "C4 Coverage Token",
+    "rarity": "uncommon",
+    "hint": "Grid point C4, outer edge of the coverage area. Roughly 140 m from its neighbours."
+  },
+  {
+    "id": "premnagar_d1",
+    "name": "Prem Nagar D1",
+    "lat": 19.169963,
+    "lng": 72.836257,
+    "token": "D1 Coverage Token",
+    "rarity": "rare",
+    "hint": "Grid point D1, outer edge of the coverage area. Roughly 140 m from its neighbours."
+  },
+  {
+    "id": "premnagar_d2",
+    "name": "Prem Nagar D2",
+    "lat": 19.169963,
+    "lng": 72.837589,
+    "token": "D2 Coverage Token",
+    "rarity": "uncommon",
+    "hint": "Grid point D2, outer edge of the coverage area. Roughly 140 m from its neighbours."
+  },
+  {
+    "id": "premnagar_d3",
+    "name": "Prem Nagar D3",
+    "lat": 19.169963,
+    "lng": 72.83892,
+    "token": "D3 Coverage Token",
+    "rarity": "uncommon",
+    "hint": "Grid point D3, outer edge of the coverage area. Roughly 140 m from its neighbours."
+  },
+  {
+    "id": "premnagar_d4",
+    "name": "Prem Nagar D4",
+    "lat": 19.169963,
+    "lng": 72.840252,
+    "token": "D4 Coverage Token",
+    "rarity": "rare",
+    "hint": "Grid point D4, outer edge of the coverage area. Roughly 140 m from its neighbours."
   }
 ]

@@ -50,7 +50,7 @@ class _MapScreenState extends State<MapScreen> {
     if (me != null && !_centredOnce) {
       _centredOnce = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _map.move(LatLng(me.lat, me.lng), 15);
+        if (mounted) _map.move(LatLng(me.lat, me.lng), 16.6);
       });
     }
 
@@ -59,8 +59,8 @@ class _MapScreenState extends State<MapScreen> {
         FlutterMap(
           mapController: _map,
           options: const MapOptions(
-            initialCenter: LatLng(21.1458, 79.0806),
-            initialZoom: 12.4,
+            initialCenter: LatLng(19.1718491, 72.8382547),
+            initialZoom: 16,
             interactionOptions: InteractionOptions(flags: InteractiveFlag.all),
           ),
           children: [
