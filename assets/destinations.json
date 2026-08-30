@@ -1,0 +1,92 @@
+[
+  {
+    "id": "futala_lake",
+    "name": "Futala Lake",
+    "lat": 21.1466,
+    "lng": 79.0350,
+    "token": "Lake Explorer Token",
+    "rarity": "uncommon",
+    "hint": "Stand anywhere on the northern promenade. The food stalls open around six and the whole kerb lights up."
+  },
+  {
+    "id": "ambazari_lake",
+    "name": "Ambazari Lake",
+    "lat": 21.1307,
+    "lng": 79.0281,
+    "token": "Still Water Token",
+    "rarity": "common",
+    "hint": "The garden gate on the eastern side is the easiest way in."
+  },
+  {
+    "id": "deekshabhoomi",
+    "name": "Deekshabhoomi",
+    "lat": 21.1279,
+    "lng": 79.0507,
+    "token": "Great Stupa Token",
+    "rarity": "rare",
+    "hint": "The white dome is visible long before you arrive. Aim for the main entrance off the ring road."
+  },
+  {
+    "id": "zero_mile",
+    "name": "Zero Mile Stone",
+    "lat": 21.1498,
+    "lng": 79.0821,
+    "token": "Centre of India Token",
+    "rarity": "rare",
+    "hint": "A sandstone pillar and four horses, tucked beside the road near the GPO."
+  },
+  {
+    "id": "sitabuldi_fort",
+    "name": "Sitabuldi Fort",
+    "lat": 21.1458,
+    "lng": 79.0806,
+    "token": "Hilltop Token",
+    "rarity": "uncommon",
+    "hint": "On the hill above the market. Open to visitors only on selected days."
+  },
+  {
+    "id": "maharajbagh",
+    "name": "Maharajbagh Zoo",
+    "lat": 21.1400,
+    "lng": 79.0653,
+    "token": "Old Garden Token",
+    "rarity": "common",
+    "hint": "The botanical garden entrance, opposite the agricultural college."
+  },
+  {
+    "id": "raman_science",
+    "name": "Raman Science Centre",
+    "lat": 21.1447,
+    "lng": 79.0664,
+    "token": "Planetarium Token",
+    "rarity": "common",
+    "hint": "Look for the dome. The forecourt counts, you do not need a ticket."
+  },
+  {
+    "id": "seminary_hills",
+    "name": "Seminary Hills",
+    "lat": 21.1667,
+    "lng": 79.0500,
+    "token": "Ridge Walker Token",
+    "rarity": "uncommon",
+    "hint": "Anywhere along the top road. Best at first light."
+  },
+  {
+    "id": "telankhedi_garden",
+    "name": "Telankhedi Garden",
+    "lat": 21.1520,
+    "lng": 79.0430,
+    "token": "Rose Garden Token",
+    "rarity": "common",
+    "hint": "Behind the Hanuman temple, above Futala."
+  },
+  {
+    "id": "iiit_nagpur",
+    "name": "IIIT Nagpur",
+    "lat": 21.0043,
+    "lng": 79.0490,
+    "token": "Campus Token",
+    "rarity": "rare",
+    "hint": "The far one. Out past Butibori, and worth the ride."
+  }
+]
