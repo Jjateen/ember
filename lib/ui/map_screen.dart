@@ -60,7 +60,7 @@ class _MapScreenState extends State<MapScreen> {
 
     if (me != null && (me.lat != _followed?.lat || me.lng != _followed?.lng)) {
       _followed = me;
-      final zoom = _firstFix ? 16.8 : _map.camera.zoom;
+      final zoom = _firstFix ? 17.8 : _map.camera.zoom;
       _firstFix = false;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _map.move(LatLng(me.lat, me.lng), zoom);
@@ -75,8 +75,8 @@ class _MapScreenState extends State<MapScreen> {
               FlutterMap(
                 mapController: _map,
                 options: const MapOptions(
-                  initialCenter: LatLng(19.1673500, 72.8367000),
-                  initialZoom: 16,
+                  initialCenter: LatLng(19.1696532, 72.8391783),
+                  initialZoom: 17.4,
                   interactionOptions: InteractionOptions(flags: InteractiveFlag.all),
                 ),
                 children: [

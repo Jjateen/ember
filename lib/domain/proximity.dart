@@ -1,17 +1,23 @@
 import 'models.dart';
 
-/// Radius at which a destination ignites. Values below ~50 m are not viable:
-/// urban GPS error is 7-13 m and both platforms advise 100 m+ for geofences.
-const double kUnlockRadiusM = 50;
+/// Radius at which a destination ignites.
+///
+/// This is a compromise forced by the survey: the closest two places in Prem
+/// Nagar are 39 m apart, so anything at or above that would put a player inside
+/// two zones at once and hand out both tokens from one spot. Below roughly this
+/// value, urban GPS error (7-13 m, worse with a blocked sky view) starts
+/// refusing to let real arrivals register at all.
+const double kUnlockRadiusM = 25;
 
-/// Fixes less precise than this are discarded rather than trusted.
-const double kAccuracyCapM = 50;
+/// Fixes less precise than the radius cannot place a player inside it with any
+/// confidence, so they are discarded rather than trusted.
+const double kAccuracyCapM = 25;
 
 /// Implied speed above this means the fix teleported; drop it.
 const double kMaxSpeedKmh = 200;
 
 /// Distance at which the UI starts warming toward the unlock.
-const double kWarmRadiusM = 200;
+const double kWarmRadiusM = 120;
 
 class Fix {
   const Fix({
@@ -52,7 +58,7 @@ ProximityResult evaluate({
 }) {
   Destination? nearest;
   double? best;
-  final inRadius = <Destination>[];
+  final inRadius = <(double, Destination)>[];
 
   for (final d in all) {
     if (unlocked.contains(d.id)) continue;
@@ -61,8 +67,16 @@ ProximityResult evaluate({
       best = m;
       nearest = d;
     }
-    if (m <= radiusM) inRadius.add(d);
+    if (m <= radiusM) inRadius.add((m, d));
   }
 
-  return ProximityResult(nearest: nearest, distanceM: best, inRadius: inRadius);
+  // Sorted so callers taking the first element always get the nearest. With
+  // places under 80 m apart, picking an arbitrary one hands out the wrong token.
+  inRadius.sort((a, b) => a.$1.compareTo(b.$1));
+
+  return ProximityResult(
+    nearest: nearest,
+    distanceM: best,
+    inRadius: [for (final e in inRadius) e.$2],
+  );
 }

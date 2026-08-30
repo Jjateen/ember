@@ -1,146 +1,56 @@
 [
   {
-    "id": "premnagar_a1",
-    "name": "Prem Nagar A1",
-    "lat": 19.169775,
-    "lng": 72.834132,
-    "token": "A1 Coverage Token",
+    "id": "sankat_mochan_hanuman",
+    "name": "Sankat Mochan Hanuman",
+    "lat": 19.169980,
+    "lng": 72.839049,
+    "token": "Hanuman Mandir Token",
     "rarity": "rare",
-    "hint": "Grid point A1, outer edge of the coverage area. Roughly 180 m from its neighbours."
+    "hint": "The Hanuman temple."
   },
   {
-    "id": "premnagar_a2",
-    "name": "Prem Nagar A2",
-    "lat": 19.169775,
-    "lng": 72.835844,
-    "token": "A2 Coverage Token",
-    "rarity": "rare",
-    "hint": "Grid point A2, outer edge of the coverage area. Roughly 180 m from its neighbours."
-  },
-  {
-    "id": "premnagar_a3",
-    "name": "Prem Nagar A3",
-    "lat": 19.169775,
-    "lng": 72.837556,
-    "token": "A3 Coverage Token",
-    "rarity": "rare",
-    "hint": "Grid point A3, outer edge of the coverage area. Roughly 180 m from its neighbours."
-  },
-  {
-    "id": "premnagar_a4",
-    "name": "Prem Nagar A4",
-    "lat": 19.169775,
-    "lng": 72.839268,
-    "token": "A4 Coverage Token",
-    "rarity": "rare",
-    "hint": "Grid point A4, outer edge of the coverage area. Roughly 180 m from its neighbours."
-  },
-  {
-    "id": "premnagar_b1",
-    "name": "Prem Nagar B1",
-    "lat": 19.168158,
-    "lng": 72.834132,
-    "token": "B1 Coverage Token",
-    "rarity": "rare",
-    "hint": "Grid point B1, outer edge of the coverage area. Roughly 180 m from its neighbours."
-  },
-  {
-    "id": "premnagar_b2",
-    "name": "Prem Nagar B2",
-    "lat": 19.168158,
-    "lng": 72.835844,
-    "token": "B2 Coverage Token",
+    "id": "detective_agency",
+    "name": "Detective Agency",
+    "lat": 19.170094,
+    "lng": 72.839400,
+    "token": "Detective Agency Token",
     "rarity": "uncommon",
-    "hint": "Grid point B2, middle band of the coverage area. Roughly 180 m from its neighbours."
+    "hint": "Just north-east of the temple, about 40 m along."
   },
   {
-    "id": "premnagar_b3",
-    "name": "Prem Nagar B3",
-    "lat": 19.168158,
-    "lng": 72.837556,
-    "token": "B3 Coverage Token",
+    "id": "vachanalay",
+    "name": "Vachanalay",
+    "lat": 19.169679,
+    "lng": 72.838530,
+    "token": "Vachanalay Token",
     "rarity": "uncommon",
-    "hint": "Grid point B3, middle band of the coverage area. Roughly 180 m from its neighbours."
+    "hint": "The reading room, south-west of the temple."
   },
   {
-    "id": "premnagar_b4",
-    "name": "Prem Nagar B4",
-    "lat": 19.168158,
-    "lng": 72.839268,
-    "token": "B4 Coverage Token",
-    "rarity": "rare",
-    "hint": "Grid point B4, outer edge of the coverage area. Roughly 180 m from its neighbours."
+    "id": "self_employee",
+    "name": "Self Employee",
+    "lat": 19.169163,
+    "lng": 72.838185,
+    "token": "Self Employee Token",
+    "rarity": "common",
+    "hint": "The south-western end of the route."
   },
   {
-    "id": "premnagar_c1",
-    "name": "Prem Nagar C1",
-    "lat": 19.166542,
-    "lng": 72.834132,
-    "token": "C1 Coverage Token",
-    "rarity": "rare",
-    "hint": "Grid point C1, outer edge of the coverage area. Roughly 180 m from its neighbours."
+    "id": "open_space",
+    "name": "Open Space",
+    "lat": 19.169398,
+    "lng": 72.839581,
+    "token": "Open Space Token",
+    "rarity": "common",
+    "hint": "The clearing in the middle of the settlement."
   },
   {
-    "id": "premnagar_c2",
-    "name": "Prem Nagar C2",
-    "lat": 19.166542,
-    "lng": 72.835844,
-    "token": "C2 Coverage Token",
-    "rarity": "uncommon",
-    "hint": "Grid point C2, middle band of the coverage area. Roughly 180 m from its neighbours."
-  },
-  {
-    "id": "premnagar_c3",
-    "name": "Prem Nagar C3",
-    "lat": 19.166542,
-    "lng": 72.837556,
-    "token": "C3 Coverage Token",
-    "rarity": "uncommon",
-    "hint": "Grid point C3, middle band of the coverage area. Roughly 180 m from its neighbours."
-  },
-  {
-    "id": "premnagar_c4",
-    "name": "Prem Nagar C4",
-    "lat": 19.166542,
-    "lng": 72.839268,
-    "token": "C4 Coverage Token",
-    "rarity": "rare",
-    "hint": "Grid point C4, outer edge of the coverage area. Roughly 180 m from its neighbours."
-  },
-  {
-    "id": "premnagar_d1",
-    "name": "Prem Nagar D1",
-    "lat": 19.164925,
-    "lng": 72.834132,
-    "token": "D1 Coverage Token",
-    "rarity": "rare",
-    "hint": "Grid point D1, outer edge of the coverage area. Roughly 180 m from its neighbours."
-  },
-  {
-    "id": "premnagar_d2",
-    "name": "Prem Nagar D2",
-    "lat": 19.164925,
-    "lng": 72.835844,
-    "token": "D2 Coverage Token",
-    "rarity": "rare",
-    "hint": "Grid point D2, outer edge of the coverage area. Roughly 180 m from its neighbours."
-  },
-  {
-    "id": "premnagar_d3",
-    "name": "Prem Nagar D3",
-    "lat": 19.164925,
-    "lng": 72.837556,
-    "token": "D3 Coverage Token",
-    "rarity": "rare",
-    "hint": "Grid point D3, outer edge of the coverage area. Roughly 180 m from its neighbours."
-  },
-  {
-    "id": "premnagar_d4",
-    "name": "Prem Nagar D4",
-    "lat": 19.164925,
-    "lng": 72.839268,
-    "token": "D4 Coverage Token",
-    "rarity": "rare",
-    "hint": "Grid point D4, outer edge of the coverage area. Roughly 180 m from its neighbours."
+    "id": "the_road",
+    "name": "The Road",
+    "lat": 19.169605,
+    "lng": 72.840326,
+    "token": "The Road Token",
+    "rarity": "common",
+    "hint": "The eastern edge, out on the road."
   }
 ]

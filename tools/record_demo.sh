@@ -16,15 +16,28 @@ here=$(cd "$(dirname "$0")" && pwd)
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 
+require_device() {
+  if ! adb shell true >/dev/null 2>&1; then
+    echo "no emulator/device reachable${1:+ ($1)}" >&2
+    exit 1
+  fi
+}
+
+# The emulator dying mid-run otherwise looks like success: geo fixes go nowhere
+# and the walk reports every point as visited.
+require_device "before start"
+
 echo "== resetting app state =="
 adb shell pm clear "$PKG" >/dev/null
 adb shell pm grant "$PKG" android.permission.ACCESS_FINE_LOCATION
 adb shell pm grant "$PKG" android.permission.ACCESS_COARSE_LOCATION
 adb shell rm -f /sdcard/seg_*.mp4 >/dev/null 2>&1
 
-adb emu geo fix 72.8367000 19.1673500 >/dev/null 2>&1
+adb emu geo fix 72.8391783 19.1696532 >/dev/null 2>&1
 adb shell am start -n "$PKG/.MainActivity" >/dev/null
-sleep 10
+# Long enough for the first satellite tiles to arrive; starting the walk on a
+# grey map makes the opening seconds of the recording useless.
+sleep 22
 
 echo "== recording =="
 adb shell "for i in \$(seq 1 $SEGMENTS); do screenrecord --time-limit $SEG --bit-rate 8000000 /sdcard/seg_\$i.mp4; done" &
@@ -35,6 +48,8 @@ walk_start=$(date +%s)
 python3 "$here/demo_walk.py" "${@:2}"
 walk=$?
 walk_secs=$(( $(date +%s) - walk_start + 10 ))
+
+require_device "after walk"
 
 sleep 2
 adb shell pkill -INT screenrecord >/dev/null 2>&1

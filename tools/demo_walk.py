@@ -15,8 +15,8 @@ import time
 
 M_PER_DEG_LAT = 111_320.0
 
-STEP_M = 22.0
-STEP_DELAY_S = 0.6
+STEP_M = 10.0
+STEP_DELAY_S = 0.4
 HOLD_S = 16.0
 SETTLE_S = 1.0
 
@@ -38,17 +38,20 @@ def metres(a: tuple, b: tuple) -> float:
     return math.hypot(dlat, dlng)
 
 
-def serpentine(points: list[dict]) -> list[dict]:
-    """Row by row, alternating direction, so the route never doubles back."""
-    rows: dict = {}
-    for p in points:
-        rows.setdefault(round(p["lat"], 5), []).append(p)
+def nearest_first(points: list[dict]) -> list[dict]:
+    """Greedy nearest-neighbour from the western-most place.
 
-    ordered = []
-    for i, lat in enumerate(sorted(rows, reverse=True)):
-        row = sorted(rows[lat], key=lambda p: p["lng"], reverse=bool(i % 2))
-        ordered.extend(row)
-    return ordered
+    The destinations are surveyed positions rather than a grid, so there is no
+    row structure to walk along; this just avoids obvious doubling back.
+    """
+    remaining = sorted(points, key=lambda p: p["lng"])
+    route = [remaining.pop(0)]
+    while remaining:
+        here = (route[-1]["lat"], route[-1]["lng"])
+        nxt = min(remaining, key=lambda p: metres(here, (p["lat"], p["lng"])))
+        remaining.remove(nxt)
+        route.append(nxt)
+    return route
 
 
 def walk(a: tuple, b: tuple) -> None:
@@ -67,7 +70,7 @@ def main() -> int:
     args = ap.parse_args()
 
     src = pathlib.Path(__file__).resolve().parents[1] / "assets" / "destinations.json"
-    route = serpentine(json.loads(src.read_text()))
+    route = nearest_first(json.loads(src.read_text()))
 
     legs = [metres((route[i]["lat"], route[i]["lng"]),
                    (route[i + 1]["lat"], route[i + 1]["lng"]))
@@ -75,13 +78,13 @@ def main() -> int:
     travel = sum(legs) / STEP_M * STEP_DELAY_S
     total = travel + len(route) * (args.hold + SETTLE_S)
 
-    print(f"route: {' -> '.join(p['name'].split()[-1] for p in route)}")
+    print('route: ' + ' -> '.join(p['name'] for p in route))
     print(f"path {sum(legs):.0f} m over {len(route)} points")
     print(f"estimated runtime {total / 60:.1f} min\n")
     if args.dry_run:
         return 0
 
-    start = (route[0]["lat"] + 260 / M_PER_DEG_LAT, route[0]["lng"])
+    start = (route[0]["lat"] - 90 / M_PER_DEG_LAT, route[0]["lng"])
     geo_fix(*start)
     time.sleep(2.5)
 
